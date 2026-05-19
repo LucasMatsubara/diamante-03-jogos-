@@ -1,6 +1,6 @@
 # 💎 Projeto Diamante 03 - API de Gestão de Jogos Online
 
-![Java](https://img.shields.io/badge/Java-17+-blue)
+![Java](https://img.shields.io/badge/Java-21+-blue)
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.2.0-brightgreen)
 ![Oracle DB](https://img.shields.io/badge/Oracle-Database-red)
 
