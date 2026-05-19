@@ -1,5 +1,6 @@
 package br.com.fiap.diamondgames.model;
 
+import br.com.fiap.diamondgames.enums.Genero;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.util.List;
@@ -9,8 +10,12 @@ public class Jogo {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     private String titulo;
-    private String genero;
+
+    @Enumerated(EnumType.STRING) // Garante que o texto do Enum seja salvo no banco
+    private Genero genero;
+
     private String desenvolvedora;
 
     @OneToMany(mappedBy = "jogo", cascade = CascadeType.ALL)
@@ -21,8 +26,8 @@ public class Jogo {
     public void setId(Long id) { this.id = id; }
     public String getTitulo() { return titulo; }
     public void setTitulo(String titulo) { this.titulo = titulo; }
-    public String getGenero() { return genero; }
-    public void setGenero(String genero) { this.genero = genero; }
+    public Genero getGenero() { return genero; }
+    public void setGenero(Genero genero) { this.genero = genero; }
     public String getDesenvolvedora() { return desenvolvedora; }
     public void setDesenvolvedora(String desenvolvedora) { this.desenvolvedora = desenvolvedora; }
     public List<Partida> getPartidas() { return partidas; }
