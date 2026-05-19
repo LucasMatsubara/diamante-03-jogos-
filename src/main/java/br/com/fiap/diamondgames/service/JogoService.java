@@ -1,5 +1,6 @@
 package br.com.fiap.diamondgames.service;
 
+import br.com.fiap.diamondgames.exception.ResourceNotFoundException;
 import br.com.fiap.diamondgames.model.Jogo;
 import br.com.fiap.diamondgames.projection.JogoResumoProjection;
 import br.com.fiap.diamondgames.repository.JogoRepository;
@@ -7,8 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
-import java.util.Optional;
 
 @Service
 public class JogoService {
@@ -20,8 +19,9 @@ public class JogoService {
         return repository.findAllProjectedBy(pageable);
     }
 
-    public Optional<Jogo> buscarPorId(Long id) {
-        return repository.findById(id);
+    public Jogo buscarPorId(Long id) {
+        return repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Jogo não encontrado com o ID: " + id));
     }
 
     public Jogo salvar(Jogo jogo) {
@@ -29,6 +29,7 @@ public class JogoService {
     }
 
     public void deletar(Long id) {
+        if (!existe(id)) throw new ResourceNotFoundException("Jogo não encontrado para deleção. ID: " + id);
         repository.deleteById(id);
     }
 

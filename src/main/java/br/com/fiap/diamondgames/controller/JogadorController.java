@@ -2,6 +2,7 @@ package br.com.fiap.diamondgames.controller;
 
 import br.com.fiap.diamondgames.dto.JogadorRequestDTO;
 import br.com.fiap.diamondgames.dto.JogadorResponseDTO;
+import br.com.fiap.diamondgames.exception.ResourceNotFoundException;
 import br.com.fiap.diamondgames.model.Jogador;
 import br.com.fiap.diamondgames.projection.JogadorResumoProjection;
 import br.com.fiap.diamondgames.service.JogadorService;
@@ -14,8 +15,6 @@ import org.springframework.hateoas.EntityModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Optional;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -35,18 +34,10 @@ public class JogadorController {
 
     @GetMapping("/{id}")
     public ResponseEntity<EntityModel<JogadorResponseDTO>> buscarPorId(@PathVariable Long id) {
-        Optional<Jogador> jogadorOpt = service.buscarPorId(id);
+        Jogador jogador = service.buscarPorId(id);
 
-        if (jogadorOpt.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-
-        Jogador jogador = jogadorOpt.get();
         JogadorResponseDTO responseDTO = new JogadorResponseDTO(
-                jogador.getId(),
-                jogador.getNickname(),
-                jogador.getEmail(),
-                jogador.getNivel()
+                jogador.getId(), jogador.getNickname(), jogador.getEmail(), jogador.getNivel()
         );
 
         EntityModel<JogadorResponseDTO> resource = EntityModel.of(responseDTO);
@@ -68,10 +59,7 @@ public class JogadorController {
         Jogador jogadorSalvo = service.salvar(jogador);
 
         JogadorResponseDTO response = new JogadorResponseDTO(
-                jogadorSalvo.getId(),
-                jogadorSalvo.getNickname(),
-                jogadorSalvo.getEmail(),
-                jogadorSalvo.getNivel()
+                jogadorSalvo.getId(), jogadorSalvo.getNickname(), jogadorSalvo.getEmail(), jogadorSalvo.getNivel()
         );
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -79,9 +67,7 @@ public class JogadorController {
     @PutMapping("/{id}")
     @CacheEvict(value = "jogadores_resumo", allEntries = true)
     public ResponseEntity<JogadorResponseDTO> atualizar(@PathVariable Long id, @RequestBody JogadorRequestDTO dto) {
-        if (!service.existe(id)) {
-            return ResponseEntity.notFound().build();
-        }
+        if (!service.existe(id)) throw new ResourceNotFoundException("Jogador não encontrado. ID: " + id);
 
         Jogador jogadorAtualizado = new Jogador();
         jogadorAtualizado.setId(id);
@@ -92,21 +78,15 @@ public class JogadorController {
         Jogador jogadorSalvo = service.salvar(jogadorAtualizado);
 
         JogadorResponseDTO response = new JogadorResponseDTO(
-                jogadorSalvo.getId(),
-                jogadorSalvo.getNickname(),
-                jogadorSalvo.getEmail(),
-                jogadorSalvo.getNivel()
+                jogadorSalvo.getId(), jogadorSalvo.getNickname(), jogadorSalvo.getEmail(), jogadorSalvo.getNivel()
         );
         return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     @CacheEvict(value = "jogadores_resumo", allEntries = true)
-    public ResponseEntity<Void> deletar(@PathVariable Long id) {
-        if (!service.existe(id)) {
-            return ResponseEntity.notFound().build();
-        }
-        service.deletar(id);
-        return ResponseEntity.noContent().build();
+    public void deletar(@PathVariable Long id) {
+        service.deletar(id); // O Service agora valida e lança a exceção
     }
 }

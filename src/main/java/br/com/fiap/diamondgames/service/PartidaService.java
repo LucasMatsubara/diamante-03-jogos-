@@ -1,6 +1,7 @@
 package br.com.fiap.diamondgames.service;
 
 import br.com.fiap.diamondgames.dto.PartidaRequestDTO;
+import br.com.fiap.diamondgames.exception.ResourceNotFoundException;
 import br.com.fiap.diamondgames.model.Jogador;
 import br.com.fiap.diamondgames.model.Jogo;
 import br.com.fiap.diamondgames.model.Partida;
@@ -12,8 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
-import java.util.Optional;
 
 @Service
 public class PartidaService {
@@ -31,16 +30,18 @@ public class PartidaService {
         return partidaRepository.findAllProjectedBy(pageable);
     }
 
-    public Optional<Partida> buscarPorId(Long id) {
-        return partidaRepository.findById(id);
+    public Partida buscarPorId(Long id) {
+        return partidaRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Partida não encontrada com o ID: " + id));
     }
 
     public Partida salvar(PartidaRequestDTO dto, Long idOpcional) {
+        // Exceção correta ao não encontrar os IDs de relacionamento
         Jogador jogador = jogadorRepository.findById(dto.jogadorId())
-                .orElseThrow(() -> new RuntimeException("Jogador não encontrado com ID: " + dto.jogadorId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Não é possível registrar partida. Jogador não encontrado com ID: " + dto.jogadorId()));
 
         Jogo jogo = jogoRepository.findById(dto.jogoId())
-                .orElseThrow(() -> new RuntimeException("Jogo não encontrado com ID: " + dto.jogoId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Não é possível registrar partida. Jogo não encontrado com ID: " + dto.jogoId()));
 
         Partida partida = new Partida();
         if (idOpcional != null) {
@@ -55,6 +56,7 @@ public class PartidaService {
     }
 
     public void deletar(Long id) {
+        if (!existe(id)) throw new ResourceNotFoundException("Partida não encontrada para deleção. ID: " + id);
         partidaRepository.deleteById(id);
     }
 

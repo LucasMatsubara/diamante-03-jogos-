@@ -2,6 +2,7 @@ package br.com.fiap.diamondgames.controller;
 
 import br.com.fiap.diamondgames.dto.PartidaRequestDTO;
 import br.com.fiap.diamondgames.dto.PartidaResponseDTO;
+import br.com.fiap.diamondgames.exception.ResourceNotFoundException;
 import br.com.fiap.diamondgames.model.Partida;
 import br.com.fiap.diamondgames.projection.PartidaResumoProjection;
 import br.com.fiap.diamondgames.service.PartidaService;
@@ -14,8 +15,6 @@ import org.springframework.hateoas.EntityModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Optional;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -35,19 +34,11 @@ public class PartidaController {
 
     @GetMapping("/{id}")
     public ResponseEntity<EntityModel<PartidaResponseDTO>> buscarPorId(@PathVariable Long id) {
-        Optional<Partida> partidaOpt = service.buscarPorId(id);
+        Partida partida = service.buscarPorId(id);
 
-        if (partidaOpt.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-
-        Partida partida = partidaOpt.get();
         PartidaResponseDTO responseDTO = new PartidaResponseDTO(
-                partida.getId(),
-                partida.getJogador().getNickname(),
-                partida.getJogo().getTitulo(),
-                partida.getDataHora(),
-                partida.getPontuacao()
+                partida.getId(), partida.getJogador().getNickname(),
+                partida.getJogo().getTitulo(), partida.getDataHora(), partida.getPontuacao()
         );
 
         EntityModel<PartidaResponseDTO> resource = EntityModel.of(responseDTO);
@@ -64,43 +55,30 @@ public class PartidaController {
         Partida partidaSalva = service.salvar(dto, null);
 
         PartidaResponseDTO response = new PartidaResponseDTO(
-                partidaSalva.getId(),
-                partidaSalva.getJogador().getNickname(),
-                partidaSalva.getJogo().getTitulo(),
-                partidaSalva.getDataHora(),
-                partidaSalva.getPontuacao()
+                partidaSalva.getId(), partidaSalva.getJogador().getNickname(),
+                partidaSalva.getJogo().getTitulo(), partidaSalva.getDataHora(), partidaSalva.getPontuacao()
         );
-
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PutMapping("/{id}")
     @CacheEvict(value = "partidas_resumo", allEntries = true)
     public ResponseEntity<PartidaResponseDTO> atualizar(@PathVariable Long id, @RequestBody PartidaRequestDTO dto) {
-        if (!service.existe(id)) {
-            return ResponseEntity.notFound().build();
-        }
+        if (!service.existe(id)) throw new ResourceNotFoundException("Partida não encontrada. ID: " + id);
 
         Partida partidaAtualizada = service.salvar(dto, id);
 
         PartidaResponseDTO response = new PartidaResponseDTO(
-                partidaAtualizada.getId(),
-                partidaAtualizada.getJogador().getNickname(),
-                partidaAtualizada.getJogo().getTitulo(),
-                partidaAtualizada.getDataHora(),
-                partidaAtualizada.getPontuacao()
+                partidaAtualizada.getId(), partidaAtualizada.getJogador().getNickname(),
+                partidaAtualizada.getJogo().getTitulo(), partidaAtualizada.getDataHora(), partidaAtualizada.getPontuacao()
         );
-
         return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     @CacheEvict(value = "partidas_resumo", allEntries = true)
-    public ResponseEntity<Void> deletar(@PathVariable Long id) {
-        if (!service.existe(id)) {
-            return ResponseEntity.notFound().build();
-        }
+    public void deletar(@PathVariable Long id) {
         service.deletar(id);
-        return ResponseEntity.noContent().build();
     }
 }

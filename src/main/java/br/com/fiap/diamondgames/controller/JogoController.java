@@ -2,6 +2,7 @@ package br.com.fiap.diamondgames.controller;
 
 import br.com.fiap.diamondgames.dto.JogoRequestDTO;
 import br.com.fiap.diamondgames.dto.JogoResponseDTO;
+import br.com.fiap.diamondgames.exception.ResourceNotFoundException;
 import br.com.fiap.diamondgames.model.Jogo;
 import br.com.fiap.diamondgames.projection.JogoResumoProjection;
 import br.com.fiap.diamondgames.service.JogoService;
@@ -14,8 +15,6 @@ import org.springframework.hateoas.EntityModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Optional;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -35,13 +34,8 @@ public class JogoController {
 
     @GetMapping("/{id}")
     public ResponseEntity<EntityModel<JogoResponseDTO>> buscarPorId(@PathVariable Long id) {
-        Optional<Jogo> jogoOpt = service.buscarPorId(id);
+        Jogo jogo = service.buscarPorId(id);
 
-        if (jogoOpt.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-
-        Jogo jogo = jogoOpt.get();
         JogoResponseDTO responseDTO = new JogoResponseDTO(jogo.getId(), jogo.getTitulo(), jogo.getGenero(), jogo.getDesenvolvedora());
 
         EntityModel<JogoResponseDTO> resource = EntityModel.of(responseDTO);
@@ -69,14 +63,12 @@ public class JogoController {
     @PutMapping("/{id}")
     @CacheEvict(value = "jogos_resumo", allEntries = true)
     public ResponseEntity<JogoResponseDTO> atualizar(@PathVariable Long id, @RequestBody JogoRequestDTO dto) {
-        if (!service.existe(id)) {
-            return ResponseEntity.notFound().build();
-        }
+        if (!service.existe(id)) throw new ResourceNotFoundException("Jogo não encontrado. ID: " + id);
 
         Jogo jogoAtualizado = new Jogo();
         jogoAtualizado.setId(id);
         jogoAtualizado.setTitulo(dto.titulo());
-        jogoAtualizado.setGenero(dto.genero()); // Mapeamento com Enum
+        jogoAtualizado.setGenero(dto.genero());
         jogoAtualizado.setDesenvolvedora(dto.desenvolvedora());
 
         Jogo jogoSalvo = service.salvar(jogoAtualizado);
@@ -86,12 +78,9 @@ public class JogoController {
     }
 
     @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     @CacheEvict(value = "jogos_resumo", allEntries = true)
-    public ResponseEntity<Void> deletar(@PathVariable Long id) {
-        if (!service.existe(id)) {
-            return ResponseEntity.notFound().build();
-        }
+    public void deletar(@PathVariable Long id) {
         service.deletar(id);
-        return ResponseEntity.noContent().build();
     }
 }
