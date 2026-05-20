@@ -37,4 +37,32 @@ O projeto atende a 100% dos requisitos solicitados:
 ### Passos para Execução
 1. Clone o repositório:
    ```bash
-   git clone [https://github.com/SEU_USUARIO/NOME_DO_REPOSITORIO.git](https://github.com/SEU_USUARIO/NOME_DO_REPOSITORIO.git)
+   git clone [https://github.com/LucasMatsubara/diamante-03-jogos-.git)
+
+2. Execute o projeto pela sua IDE (Eclipse, IntelliJ, VSCode) ou via terminal:
+
+Bash
+mvn spring-boot:run
+🗄️ Acesso ao Banco de Dados (H2 Console)
+O projeto utiliza um banco de dados em memória que já sobe com dados iniciais para facilitar os testes.
+
+URL de acesso: http://localhost:8080/h2-console
+
+JDBC URL: jdbc:h2:mem:jogosdb
+
+User Name: sa
+
+Password: (deixe em branco)
+
+📖 Documentação e Testes (Swagger)
+Com a aplicação em execução, acesse o navegador para visualizar a documentação interativa e testar todos os endpoints já com os dados populados:
+👉 http://localhost:8080/swagger-ui.html
+
+🛠️ Endpoints de Monitoramento (Actuator)
+Integridade do sistema: http://localhost:8080/actuator/health
+
+Informações gerais: http://localhost:8080/actuator/info
+
+Métricas detalhadas: http://localhost:8080/actuator/metrics
+
+Desenvolvido para avaliação final do semestre.
